@@ -9,8 +9,10 @@ from enaml.qt.qt_application import QtApplication
 
 
 def get_db_locations():
+    """Extract locations for BLAST dbs from environment variable BLASTDB
+    
+    """
     try:
-        # check environment variable
         blast_env =  os.environ['BLASTDB']
         paths = blast_env.split(';')
         return paths
