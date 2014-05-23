@@ -3,7 +3,7 @@ __author__ = 'kp14'
 import os
 import subprocess
 
-from atom.api import Atom, Unicode, Str, Range, Bool, List, Value, Int, Tuple, observe
+from atom.api import Atom, Unicode, Bool, List
 import enaml
 from enaml.qt.qt_application import QtApplication
 
@@ -13,10 +13,10 @@ def get_db_locations():
     
     """
     try:
-        blast_env =  os.environ['BLASTDB']
+        blast_env = os.environ['BLASTDB']
         paths = blast_env.split(';')
         return paths
-    except KeyError, e:
+    except KeyError:
         # need to return this as a list so that it can populate the drop-down menu
         return None
 
@@ -58,14 +58,13 @@ class CustomBlastSearch(Atom):
                 print path
                 if len(path) > 1:
                     dbs = subprocess.check_output(['blastdbcmd', '-list', path])
-                    result = result + dbs
+                    result += dbs
             raw_dbs = result.split('\n')
             # each line looks like: F:\path\to\db\db_name db_type -> db_name
             self.available_dbs = [os.path.basename(x.split()[0]) for x in raw_dbs[:-1]]
-        except TypeError, e: # paths is None
+        except TypeError, e:  # paths is None
             # need to return this as a list so that it can populate the drop-down menu
             self.available_dbs = ['None, check variable: {}'.format(e.message)]
-
 
     def run(self):
         print self.fasta
