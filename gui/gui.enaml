@@ -1,0 +1,158 @@
+from enaml.layout.api import hbox, vbox, align, spacer
+from enaml.widgets.api import (
+    Container, Field, FileDialogEx, GroupBox, Label, PushButton,
+    RadioButton, Window, Notebook, Page, ComboBox, PopupView, Html, CheckBox
+)
+
+def gen_constraints(nbook, gbox, pbutton, cbox, html, html_vis):
+    if not html_vis:
+        return [vbox(nbook, gbox, hbox(pbutton, cbox))]
+    else:
+        return [vbox(nbook, gbox, hbox(pbutton, cbox), html)]
+
+enamldef NotificationPopup(PopupView):
+    foreground = 'white'
+    background = 'rgba(13, 168, 29, 0.85)'
+    window_type = 'tool_tip'
+    parent_anchor = (1.0, 1.0)
+    anchor = (1.0, 1.0)
+    offset = (-10, -10)
+    timeout = 5
+    fade_in_duration = 500
+    fade_out_duration = 1500
+    Container:
+        Label:
+            foreground = 'white'
+            text = 'DB successfully created.'
+            align = 'center'
+
+enamldef Main(Window): window:
+    attr db
+    attr bs
+    attr output: unicode = u""
+    title = 'Custom BLAST'
+    Container:
+        Notebook: nbook:
+            tab_style = 'preferences'
+            selected_tab ::
+                if selected_tab == 'runblast':
+                    window.bs.populate()
+            Page:
+                name = 'createdb'
+                title = 'Create DB'
+                closable = False
+                tool_tip = 'Create a new BLAST DB'
+                Container:
+                    constraints << gen_constraints(choice, grp_box3, run_b, show_output, html, show_output.checked)
+                    Notebook: choice:
+                        tab_style = 'preferences'
+                        Page: choice_f:
+
+                            title = 'Query sequence(s)'
+                            closable = False
+
+                            Container:
+                                constraints = [
+                                    hbox(lbl1, fld1, pb1),
+                                    align('v_center', lbl1, fld1, pb1)
+                                ]
+                                Label: lbl1:
+                                    text = 'File'
+                                Field: fld1:
+                                    read_only = True
+                                    text := window.db.fasta
+                                PushButton: pb1:
+                                    text = 'Browse'
+                                    clicked ::
+                                        path = FileDialogEx.get_open_file_name(window)
+                                        if path:
+                                            window.db.fasta = path
+                        Page: choice_q:
+                            title = 'UniProtKB query'
+                            closable = False
+                            Container:
+
+                                constraints = [
+                                    vbox(tax, hbox(spl, yes_b, no_b, spacer)),
+                                    #align('v_center', spl, yes_b, no_b)
+                                    ]
+
+                                Field: tax:
+                                    text := window.db.query
+                                Label: spl:
+                                    text = 'Swiss-Prot only?'
+                                RadioButton: yes_b:
+                                    text = 'yes'
+                                    clicked :: window.db.sp_only = True
+                                RadioButton: no_b:
+                                    text = 'no'
+                                    checked = True
+                                    clicked :: window.db.sp_only = False
+
+                    GroupBox: grp_box3:
+                        title = 'Name of BLAST DB'
+                        Field: db:
+                            text := window.db.target_name
+                    PushButton: run_b:
+                        text = 'Create BLAST database'
+                        clicked ::
+                            window.output = u'<pre>{}</pre>'.format(window.db.run())
+                            popup = NotificationPopup()
+                            popup.anchor_mode = 'cursor'
+                            popup.anchor = (0.0, 0.0)
+                            popup.offset = (0, 0)
+                            popup.timeout = 1
+                            popup.show()
+
+                    CheckBox: show_output:
+                        checked = False
+                        checkable = True
+                        text = 'Show output'
+                    Container: html:
+                        visible << show_output.checked
+                        Html:
+                            source << window.output
+            Page:
+                name = 'runblast'
+                title = 'Run BLAST'
+                closable = False
+                tool_tip = 'Run a BLAST search'
+                Container:
+                    constraints = [
+                        vbox(input_box, db_box, run_b2),
+                        pb2.height == fld2.height,
+                    ]
+                    GroupBox: input_box:
+                        constraints = [
+                            hbox(lbl2, fld2, pb2),
+                            align('v_center', lbl2, fld2, pb2)
+                        ]
+                        title = "FASTA input file..."
+                        Label: lbl2:
+                            text = 'File'
+                        Field: fld2:
+                            read_only = True
+                            text := window.bs.fasta
+                        PushButton: pb2:
+                            text = 'Browse'
+                            clicked ::
+                                path = FileDialogEx.get_open_file_name(window)
+                                if path:
+                                    print path
+                                    window.bs.fasta = path
+                    GroupBox: db_box:
+                        constraints = [
+                            hbox(lbl, c_box, spacer),
+                            align('v_center', lbl, c_box)
+                        ]
+                        title = "Choose BLAST DB..."
+                        Label: lbl:
+                            text = 'Database'
+                        ComboBox: c_box:
+                            items << window.bs.available_dbs
+                            selected_item >> window.bs.db
+
+                    PushButton: run_b2:
+                        text = 'Run BLAST search'
+                        clicked ::
+                            window.bs.run()
