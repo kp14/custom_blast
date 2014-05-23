@@ -85,7 +85,7 @@ if __name__ == '__main__':
     cbs = CustomBlastSearch()
 
     with enaml.imports():
-        from bastdb_nb import Main
+        from blastdb import Main
 
     app = QtApplication()
     view = Main(db=cbdb, bs=cbs)
