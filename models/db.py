@@ -23,7 +23,7 @@ class CustomBlastDB(Atom):
             result = subprocess.check_output(['makeblastdb', '-in', self.fasta, '-dbtype', 'prot', '-parse_seqids',
                                               '-title', self.target_name, '-out', self.target_name], cwd=paths[0],
                                               stderr=subprocess.STDOUT)
-        except subprocess.CalledProcessError, e:
+        except subprocess.CalledProcessError as e:
             result = e.output
         return unicode(result)
 

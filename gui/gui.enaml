@@ -29,7 +29,7 @@ enamldef NotificationPopup(PopupView):
 enamldef Main(Window): window:
     attr db
     attr bs
-    attr output: unicode = u""
+    attr output = u""
     title = 'Custom BLAST'
     Container:
         Notebook: nbook:
@@ -138,7 +138,7 @@ enamldef Main(Window): window:
                             clicked ::
                                 path = FileDialogEx.get_open_file_name(window)
                                 if path:
-                                    print path
+                                    print(path)
                                     window.bs.fasta = path
                     GroupBox: db_box:
                         constraints = [
